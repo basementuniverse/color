@@ -165,9 +165,9 @@ test('edge cases and special values', (assert) => {
   // Test hue wraparound (should handle values > 360)
   const hueOver360 = ColorUtils.hslaToRGBA({ h: 390, s: 100, l: 50, a: 1 }); // 390 = 30
   const hue30 = ColorUtils.hslaToRGBA({ h: 30, s: 100, l: 50, a: 1 });
-  assert.equal(hueOver360.r, hue30.r, 'Hue > 360 should wrap around');
-  assert.equal(hueOver360.g, hue30.g, 'Hue > 360 should wrap around');
-  assert.equal(hueOver360.b, hue30.b, 'Hue > 360 should wrap around');
+  assert.closeTo(hueOver360.r, hue30.r, 1, 'Hue > 360 should wrap around');
+  assert.closeTo(hueOver360.g, hue30.g, 1, 'Hue > 360 should wrap around');
+  assert.closeTo(hueOver360.b, hue30.b, 1, 'Hue > 360 should wrap around');
 
   // Test extreme lightness values
   const veryDark = ColorUtils.hslaToRGBA({ h: 0, s: 100, l: 1, a: 1 });

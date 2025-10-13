@@ -17,6 +17,18 @@ const myRGBAColor: RGBAColor = { r: 255, g: 0, b: 0, a: 1 }; // Red color in RGB
 const myHSLAColor: HSLAColor = { h: 0, s: 100, l: 50, a: 1 }; // Red color in HSLA
 ```
 
+### Type guards
+
+```typescript
+import { isRGBAColor, isHSLAColor } from '@basementuniverse/color';
+
+if (isRGBAColor(myColor)) {
+  // myColor is RGBAColor
+} else if (isHSLAColor(myColor)) {
+  // myColor is HSLAColor
+}
+```
+
 ### Parse a string to a colour object
 
 ```typescript
@@ -68,7 +80,7 @@ Supported modes: `rgb` | `hsl` | `hex`.
 ### Manipulate colors
 
 ```typescript
-import { lighten, darken, saturate, desaturate, fadeIn, fadeOut, invert } from '@basementuniverse/color';
+import { lighten, darken, saturate, desaturate, fadeIn, fadeOut, invert, blend } from '@basementuniverse/color';
 
 const lighterColor = lighten(myRGBAColor, 0.1); // Lighten color by 10%
 const darkerColor = darken(myRGBAColor, 0.1); // Darken color by 10%
@@ -77,4 +89,5 @@ const lessSaturatedColor = desaturate(myRGBAColor, 0.1); // Decrease saturation 
 const moreOpaqueColor = fadeIn(myRGBAColor, 0.1); // Increase opacity by 10%
 const moreTransparentColor = fadeOut(myRGBAColor, 0.1); // Decrease opacity by 10%
 const invertedColor = invert(myRGBAColor); // Invert color
+const blendedColor = blend(myRGBAColor, anotherColor, 0.5); // Blend with another color at 50%
 ```

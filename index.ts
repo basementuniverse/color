@@ -17,6 +17,32 @@ export type HSLAColor = {
 };
 
 // -----------------------------------------------------------------------------
+// Type guards
+// -----------------------------------------------------------------------------
+
+function isRGBAColor(color: any): color is RGBAColor {
+  return (
+    color &&
+    typeof color === 'object' &&
+    typeof color.r === 'number' &&
+    typeof color.g === 'number' &&
+    typeof color.b === 'number' &&
+    (color.a === undefined || typeof color.a === 'number')
+  );
+}
+
+function isHSLAColor(color: any): color is HSLAColor {
+  return (
+    color &&
+    typeof color === 'object' &&
+    typeof color.h === 'number' &&
+    typeof color.s === 'number' &&
+    typeof color.l === 'number' &&
+    (color.a === undefined || typeof color.a === 'number')
+  );
+}
+
+// -----------------------------------------------------------------------------
 // Colour names and corresponding hex values
 // -----------------------------------------------------------------------------
 
@@ -286,17 +312,24 @@ function parseHex(hex: string): RGBAColor | null {
 
   // Parse 6-digit or 8-digit hex
   if (hex.length === 6) {
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
+    let r = parseInt(hex.slice(0, 2), 16);
+    let g = parseInt(hex.slice(2, 4), 16);
+    let b = parseInt(hex.slice(4, 6), 16);
+    if (Number.isNaN(r)) r = 0;
+    if (Number.isNaN(g)) g = 0;
+    if (Number.isNaN(b)) b = 0;
     return { r, g, b, a: 1 };
   }
 
   if (hex.length === 8) {
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-    const a = parseInt(hex.slice(6, 8), 16) / 255;
+    let r = parseInt(hex.slice(0, 2), 16);
+    let g = parseInt(hex.slice(2, 4), 16);
+    let b = parseInt(hex.slice(4, 6), 16);
+    let a = parseInt(hex.slice(6, 8), 16) / 255;
+    if (Number.isNaN(r)) r = 0;
+    if (Number.isNaN(g)) g = 0;
+    if (Number.isNaN(b)) b = 0;
+    if (Number.isNaN(a)) a = 0;
     return { r, g, b, a: round(a, 2) };
   }
 
@@ -373,6 +406,10 @@ function stringToRGBA(colorString: string): RGBAColor {
     if (hsl) return hsl;
   }
 
+  // Try to parse as hex without # (fallback for hex strings without prefix)
+  const hex = parseHex(str);
+  if (hex) return hex;
+
   // Default to black if parsing fails
   return { r: 0, g: 0, b: 0, a: 1 };
 }
@@ -386,7 +423,7 @@ function rgbaToString(
   rgba: RGBAColor,
   options?: { mode?: 'rgb' | 'hex'; alpha?: boolean }
 ): string {
-  const { mode = 'rgb', alpha = true } = options || {};
+  const { mode = 'rgb', alpha } = options || {};
   const a = rgba.a !== undefined ? rgba.a : 1;
 
   if (mode === 'hex') {
@@ -394,24 +431,28 @@ function rgbaToString(
       Math.round(n).toString(16).padStart(2, '0');
     const hex = `#${toHex(rgba.r)}${toHex(rgba.g)}${toHex(rgba.b)}`;
 
-    if (alpha && a < 1) {
+    if (alpha === true || (alpha === undefined && a < 1)) {
       return hex + toHex(a * 255);
     }
     return hex;
   }
 
   // RGB mode
-  if (alpha && a < 1) {
-    return `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${a})`;
+  if (alpha === true || (alpha === undefined && a < 1)) {
+    return `rgba(${Math.round(rgba.r)}, ${Math.round(rgba.g)}, ${Math.round(
+      rgba.b
+    )}, ${a})`;
   }
-  return `rgb(${rgba.r}, ${rgba.g}, ${rgba.b})`;
+  return `rgb(${Math.round(rgba.r)}, ${Math.round(rgba.g)}, ${Math.round(
+    rgba.b
+  )})`;
 }
 
 function hslaToString(
   hsla: HSLAColor,
   options?: { mode?: 'hsl' | 'hex'; alpha?: boolean }
 ): string {
-  const { mode = 'hsl', alpha = true } = options || {};
+  const { mode = 'hsl', alpha } = options || {};
   const a = hsla.a !== undefined ? hsla.a : 1;
 
   if (mode === 'hex') {
@@ -421,10 +462,14 @@ function hslaToString(
   }
 
   // HSL mode
-  if (alpha && a < 1) {
-    return `hsla(${hsla.h}, ${hsla.s}%, ${hsla.l}%, ${a})`;
+  if (alpha === true || (alpha === undefined && a < 1)) {
+    return `hsla(${Math.round(hsla.h)}, ${Math.round(hsla.s)}%, ${Math.round(
+      hsla.l
+    )}%, ${a})`;
   }
-  return `hsl(${hsla.h}, ${hsla.s}%, ${hsla.l}%)`;
+  return `hsl(${Math.round(hsla.h)}, ${Math.round(hsla.s)}%, ${Math.round(
+    hsla.l
+  )}%)`;
 }
 
 // -----------------------------------------------------------------------------
@@ -435,20 +480,24 @@ function lighten<T extends RGBAColor | HSLAColor>(
   color: T,
   amount: number = 0.1
 ): T {
-  if ('h' in color) {
+  if (isHSLAColor(color)) {
     // HSLAColor
     const hsla = color as HSLAColor;
     return {
       ...hsla,
       l: clamp(hsla.l + amount * 100, 0, 100),
     } as T;
-  } else {
+  }
+
+  if (isRGBAColor(color)) {
     // RGBAColor - convert to HSLA, lighten, convert back
     const rgba = color as RGBAColor;
     const hsla = rgbaToHSLA(rgba);
     const lightened = lighten(hsla, amount);
     return hslaToRGBA(lightened) as T;
   }
+
+  return color;
 }
 
 function darken<T extends RGBAColor | HSLAColor>(
@@ -462,20 +511,24 @@ function saturate<T extends RGBAColor | HSLAColor>(
   color: T,
   amount: number = 0.1
 ): T {
-  if ('h' in color) {
+  if (isHSLAColor(color)) {
     // HSLAColor
     const hsla = color as HSLAColor;
     return {
       ...hsla,
       s: clamp(hsla.s + amount * 100, 0, 100),
     } as T;
-  } else {
+  }
+
+  if (isRGBAColor(color)) {
     // RGBAColor - convert to HSLA, saturate, convert back
     const rgba = color as RGBAColor;
     const hsla = rgbaToHSLA(rgba);
     const saturated = saturate(hsla, amount);
     return hslaToRGBA(saturated) as T;
   }
+
+  return color;
 }
 
 function desaturate<T extends RGBAColor | HSLAColor>(
@@ -504,13 +557,15 @@ function fadeOut<T extends RGBAColor | HSLAColor>(
 }
 
 function invert<T extends RGBAColor | HSLAColor>(color: T): T {
-  if ('h' in color) {
+  if (isHSLAColor(color)) {
     // HSLAColor - convert to RGBA, invert, convert back
     const hsla = color as HSLAColor;
     const rgba = hslaToRGBA(hsla);
     const inverted = invert(rgba);
     return rgbaToHSLA(inverted) as T;
-  } else {
+  }
+
+  if (isRGBAColor(color)) {
     // RGBAColor
     const rgba = color as RGBAColor;
     return {
@@ -520,6 +575,44 @@ function invert<T extends RGBAColor | HSLAColor>(color: T): T {
       b: 255 - rgba.b,
     } as T;
   }
+
+  return color;
+}
+
+function blend<T extends RGBAColor | HSLAColor>(
+  color1: T,
+  color2: T,
+  ratio: number = 0.5
+): T {
+  const r = clamp(ratio, 0, 1);
+  const invR = 1 - r;
+
+  if (isHSLAColor(color1) && isHSLAColor(color2)) {
+    // Both HSLAColor
+    const hsla1 = color1 as HSLAColor;
+    const hsla2 = color2 as HSLAColor;
+    return {
+      h: Math.round(hsla1.h * invR + hsla2.h * r),
+      s: Math.round(hsla1.s * invR + hsla2.s * r),
+      l: Math.round(hsla1.l * invR + hsla2.l * r),
+      a: round((hsla1.a ?? 1) * invR + (hsla2.a ?? 1) * r, 2),
+    } as T;
+  }
+
+  if (isRGBAColor(color1) && isRGBAColor(color2)) {
+    // Both RGBAColor
+    const rgba1 = color1 as RGBAColor;
+    const rgba2 = color2 as RGBAColor;
+    return {
+      r: Math.round(rgba1.r * invR + rgba2.r * r),
+      g: Math.round(rgba1.g * invR + rgba2.g * r),
+      b: Math.round(rgba1.b * invR + rgba2.b * r),
+      a: round((rgba1.a ?? 1) * invR + (rgba2.a ?? 1) * r, 2),
+    } as T;
+  }
+
+  // If types don't match, return the first color
+  return color1;
 }
 
 export const ColorUtils = {
@@ -543,4 +636,5 @@ export const ColorUtils = {
   fadeIn,
   fadeOut,
   invert,
+  blend,
 };

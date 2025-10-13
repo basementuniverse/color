@@ -29,6 +29,7 @@ declare function desaturate<T extends RGBAColor | HSLAColor>(color: T, amount?: 
 declare function fadeIn<T extends RGBAColor | HSLAColor>(color: T, amount?: number): T;
 declare function fadeOut<T extends RGBAColor | HSLAColor>(color: T, amount?: number): T;
 declare function invert<T extends RGBAColor | HSLAColor>(color: T): T;
+declare function blend<T extends RGBAColor | HSLAColor>(color1: T, color2: T, ratio?: number): T;
 export declare const ColorUtils: {
     stringToRGBA: typeof stringToRGBA;
     stringToHSLA: typeof stringToHSLA;
@@ -43,5 +44,6 @@ export declare const ColorUtils: {
     fadeIn: typeof fadeIn;
     fadeOut: typeof fadeOut;
     invert: typeof invert;
+    blend: typeof blend;
 };
 export {};
