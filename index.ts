@@ -215,6 +215,54 @@ function round(value: number, decimals: number = 0): number {
 // Conversion functions
 // -----------------------------------------------------------------------------
 
+function toUnit(rgba: RGBAColor): RGBAColor;
+function toUnit(hsla: HSLAColor): HSLAColor;
+function toUnit(c: RGBAColor | HSLAColor): RGBAColor | HSLAColor {
+  if (isRGBAColor(c)) {
+    return {
+      r: clamp(c.r / 255, 0, 1),
+      g: clamp(c.g / 255, 0, 1),
+      b: clamp(c.b / 255, 0, 1),
+      a: c.a !== undefined ? clamp(c.a, 0, 1) : 1,
+    };
+  }
+
+  if (isHSLAColor(c)) {
+    return {
+      h: clamp(c.h / 360, 0, 1),
+      s: clamp(c.s / 100, 0, 1),
+      l: clamp(c.l / 100, 0, 1),
+      a: c.a !== undefined ? clamp(c.a, 0, 1) : 1,
+    };
+  }
+
+  throw new Error('Invalid color object');
+}
+
+function fromUnit(rgba: RGBAColor): RGBAColor;
+function fromUnit(hsla: HSLAColor): HSLAColor;
+function fromUnit(c: RGBAColor | HSLAColor): RGBAColor | HSLAColor {
+  if (isRGBAColor(c)) {
+    return {
+      r: clamp(Math.round(c.r * 255), 0, 255),
+      g: clamp(Math.round(c.g * 255), 0, 255),
+      b: clamp(Math.round(c.b * 255), 0, 255),
+      a: c.a !== undefined ? clamp(c.a, 0, 1) : 1,
+    };
+  }
+
+  if (isHSLAColor(c)) {
+    return {
+      h: clamp(Math.round(c.h * 360), 0, 360),
+      s: clamp(Math.round(c.s * 100), 0, 100),
+      l: clamp(Math.round(c.l * 100), 0, 100),
+      a: c.a !== undefined ? clamp(c.a, 0, 1) : 1,
+    };
+  }
+
+  throw new Error('Invalid color object');
+}
+
 function hslaToRGBA(hsla: HSLAColor): RGBAColor {
   const h = hsla.h / 360;
   const s = hsla.s / 100;
@@ -421,10 +469,20 @@ function stringToHSLA(colorString: string): HSLAColor {
 
 function rgbaToString(
   rgba: RGBAColor,
-  options?: { mode?: 'rgb' | 'hex'; alpha?: boolean }
+  options?: {
+    mode?: 'rgb' | 'hex';
+    alpha?: boolean;
+    convert?: 'fromUnit' | 'toUnit';
+  }
 ): string {
-  const { mode = 'rgb', alpha } = options || {};
+  const { mode = 'rgb', alpha, convert } = options || {};
   const a = rgba.a !== undefined ? rgba.a : 1;
+
+  if (convert === 'fromUnit') {
+    rgba = ColorUtils.fromUnit(rgba);
+  } else if (convert === 'toUnit') {
+    rgba = ColorUtils.toUnit(rgba);
+  }
 
   if (mode === 'hex') {
     const toHex = (n: number): string =>
@@ -450,10 +508,20 @@ function rgbaToString(
 
 function hslaToString(
   hsla: HSLAColor,
-  options?: { mode?: 'hsl' | 'hex'; alpha?: boolean }
+  options?: {
+    mode?: 'hsl' | 'hex';
+    alpha?: boolean;
+    convert?: 'fromUnit' | 'toUnit';
+  }
 ): string {
-  const { mode = 'hsl', alpha } = options || {};
+  const { mode = 'hsl', alpha, convert } = options || {};
   const a = hsla.a !== undefined ? hsla.a : 1;
+
+  if (convert === 'fromUnit') {
+    hsla = ColorUtils.fromUnit(hsla);
+  } else if (convert === 'toUnit') {
+    hsla = ColorUtils.toUnit(hsla);
+  }
 
   if (mode === 'hex') {
     // Convert to RGBA first, then to hex
@@ -616,6 +684,10 @@ function blend<T extends RGBAColor | HSLAColor>(
 }
 
 export const ColorUtils = {
+  // Convert to and from [0, 1] range and [0, 255] / [0, 360] ranges
+  toUnit,
+  fromUnit,
+
   // String parsing functions
   stringToRGBA,
   stringToHSLA,

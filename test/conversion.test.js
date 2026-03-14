@@ -1,6 +1,40 @@
 const { test } = require('qunit');
 const { ColorUtils } = require('../build/index.js');
 
+test('toUnit and fromUnit - basic functionality', (assert) => {
+  // Test toUnit with RGBA
+  const nonUnitRGBA = { r: 255, g: 128, b: 0, a: 0.5 };
+  const convertedUnitRGBA = ColorUtils.toUnit(nonUnitRGBA);
+  assert.closeTo(convertedUnitRGBA.r, 1, 0.001, 'toUnit should convert r to [0, 1] range');
+  assert.closeTo(convertedUnitRGBA.g, 0.502, 0.001, 'toUnit should convert g to [0, 1] range');
+  assert.closeTo(convertedUnitRGBA.b, 0, 0.001, 'toUnit should convert b to [0, 1] range');
+  assert.equal(convertedUnitRGBA.a, 0.5, 'toUnit should preserve alpha');
+
+  // Test fromUnit with RGBA
+  const unitRGBA = { r: 1, g: 0.5, b: 0, a: 0.5 };
+  const convertedNonUnitRGBA = ColorUtils.fromUnit(unitRGBA);
+  assert.equal(convertedNonUnitRGBA.r, 255, 'fromUnit should convert r to [0, 255] range');
+  assert.equal(convertedNonUnitRGBA.g, 128, 'fromUnit should convert g to [0, 255] range');
+  assert.equal(convertedNonUnitRGBA.b, 0, 'fromUnit should convert b to [0, 255] range');
+  assert.equal(convertedNonUnitRGBA.a, 0.5, 'fromUnit should preserve alpha');
+
+  // Test toUnit with HSLA
+  const nonUnitHSLA = { h: 360, s: 100, l: 50, a: 0.5 };
+  const convertedUnitHSLA = ColorUtils.toUnit(nonUnitHSLA);
+  assert.closeTo(convertedUnitHSLA.h, 1, 0.001, 'toUnit should convert h to [0, 1] range');
+  assert.closeTo(convertedUnitHSLA.s, 1, 0.001, 'toUnit should convert s to [0, 1] range');
+  assert.closeTo(convertedUnitHSLA.l, 0.5, 0.001, 'toUnit should convert l to [0, 1] range');
+  assert.equal(convertedUnitHSLA.a, 0.5, 'toUnit should preserve alpha');
+
+  // Test fromUnit with HSLA
+  const unitHSLA = { h: 1, s: 1, l: 0.5, a: 0.5 };
+  const convertedNonUnitHSLA = ColorUtils.fromUnit(unitHSLA);
+  assert.equal(convertedNonUnitHSLA.h, 360, 'fromUnit should convert h to [0, 360] range');
+  assert.equal(convertedNonUnitHSLA.s, 100, 'fromUnit should convert s to [0, 100] range');
+  assert.equal(convertedNonUnitHSLA.l, 50, 'fromUnit should convert l to [0, 100] range');
+  assert.equal(convertedNonUnitHSLA.a, 0.5, 'fromUnit should preserve alpha');
+});
+
 test('rgbaToHSLA - primary colors', (assert) => {
   // Test red
   const red = ColorUtils.rgbaToHSLA({ r: 255, g: 0, b: 0, a: 1 });
