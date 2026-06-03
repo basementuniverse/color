@@ -16,6 +16,37 @@ export type HSLAColor = {
   a?: number;
 };
 
+export type RandomSource = () => number;
+
+export type RandomRange = {
+  min?: number;
+  max?: number;
+  mean?: number;
+  stddev?: number;
+};
+
+export type RandomRGBAOptions = {
+  r?: RandomRange;
+  g?: RandomRange;
+  b?: RandomRange;
+  a?: RandomRange;
+  rng?: RandomSource;
+};
+
+export type RandomHSLAOptions = {
+  h?: RandomRange;
+  s?: RandomRange;
+  l?: RandomRange;
+  a?: RandomRange;
+  rng?: RandomSource;
+};
+
+export type RandomGradientOptions = {
+  position?: RandomRange;
+  space?: 'rgb' | 'hsl';
+  rng?: RandomSource;
+};
+
 // -----------------------------------------------------------------------------
 // Type guards
 // -----------------------------------------------------------------------------
@@ -209,6 +240,198 @@ function clamp(value: number, min: number, max: number): number {
 function round(value: number, decimals: number = 0): number {
   const factor = Math.pow(10, decimals);
   return Math.round(value * factor) / factor;
+}
+
+function randomUnit(rng: RandomSource): number {
+  const value = rng();
+  return clamp(value, 0, 1);
+}
+
+function randomUniform(rng: RandomSource, min: number, max: number): number {
+  if (min === max) return min;
+  return min + randomUnit(rng) * (max - min);
+}
+
+function randomNormal(rng: RandomSource, mean: number, stddev: number): number {
+  if (stddev === 0) return mean;
+
+  const u1 = Math.max(randomUnit(rng), Number.EPSILON);
+  const u2 = randomUnit(rng);
+  const magnitude = Math.sqrt(-2 * Math.log(u1));
+  const z0 = magnitude * Math.cos(2 * Math.PI * u2);
+
+  return mean + z0 * stddev;
+}
+
+function sampleRandomRange(
+  range: RandomRange | undefined,
+  minBound: number,
+  maxBound: number,
+  rng: RandomSource
+): number {
+  if (!range) {
+    return randomUniform(rng, minBound, maxBound);
+  }
+
+  const hasMin = range.min !== undefined;
+  const hasMax = range.max !== undefined;
+  const hasMean = range.mean !== undefined;
+  const hasStddev = range.stddev !== undefined;
+
+  if (hasMean || hasStddev) {
+    if (!hasMean || !hasStddev) {
+      throw new Error(
+        'Invalid random range: mean and stddev must both be provided'
+      );
+    }
+
+    const clampMin = hasMin ? range.min! : minBound;
+    const clampMax = hasMax ? range.max! : maxBound;
+    return clamp(
+      randomNormal(rng, range.mean!, range.stddev!),
+      clampMin,
+      clampMax
+    );
+  }
+
+  if (hasMin || hasMax) {
+    if (!hasMin || !hasMax) {
+      throw new Error(
+        'Invalid random range: min and max must both be provided'
+      );
+    }
+
+    return clamp(
+      randomUniform(rng, range.min!, range.max!),
+      minBound,
+      maxBound
+    );
+  }
+
+  return randomUniform(rng, minBound, maxBound);
+}
+
+function lerp(start: number, end: number, ratio: number): number {
+  return start * (1 - ratio) + end * ratio;
+}
+
+function interpolateRGBA(
+  color1: RGBAColor,
+  color2: RGBAColor,
+  ratio: number
+): RGBAColor {
+  return {
+    r: Math.round(lerp(color1.r, color2.r, ratio)),
+    g: Math.round(lerp(color1.g, color2.g, ratio)),
+    b: Math.round(lerp(color1.b, color2.b, ratio)),
+    a: round(lerp(color1.a ?? 1, color2.a ?? 1, ratio), 2),
+  };
+}
+
+function interpolateHSLA(
+  color1: HSLAColor,
+  color2: HSLAColor,
+  ratio: number
+): HSLAColor {
+  let h1 = color1.h;
+  let h2 = color2.h;
+
+  const delta = h2 - h1;
+  if (Math.abs(delta) > 180) {
+    if (delta > 0) {
+      h1 += 360;
+    } else {
+      h2 += 360;
+    }
+  }
+
+  const hue = lerp(h1, h2, ratio) % 360;
+
+  return {
+    h: hue < 0 ? hue + 360 : hue,
+    s: Math.round(lerp(color1.s, color2.s, ratio)),
+    l: Math.round(lerp(color1.l, color2.l, ratio)),
+    a: round(lerp(color1.a ?? 1, color2.a ?? 1, ratio), 2),
+  };
+}
+
+function getGradientSpace(
+  colors: Array<RGBAColor | HSLAColor>,
+  space?: 'rgb' | 'hsl'
+): 'rgb' | 'hsl' {
+  if (space) return space;
+  return isHSLAColor(colors[0]) ? 'hsl' : 'rgb';
+}
+
+function toGradientColor(
+  color: RGBAColor | HSLAColor,
+  space: 'rgb' | 'hsl'
+): RGBAColor | HSLAColor {
+  return space === 'rgb'
+    ? isRGBAColor(color)
+      ? color
+      : hslaToRGBA(color)
+    : isHSLAColor(color)
+      ? color
+      : rgbaToHSLA(color);
+}
+
+function interpolateGradient(
+  colors: Array<RGBAColor | HSLAColor>,
+  position: number,
+  space: 'rgb' | 'hsl'
+): RGBAColor | HSLAColor {
+  if (colors.length === 1) {
+    return toGradientColor(colors[0], space);
+  }
+
+  const t = clamp(position, 0, 1);
+  const scaled = t * (colors.length - 1);
+  const index = Math.min(Math.floor(scaled), colors.length - 2);
+  const ratio = scaled - index;
+  const first = toGradientColor(colors[index], space);
+  const second = toGradientColor(colors[index + 1], space);
+
+  return space === 'rgb'
+    ? interpolateRGBA(first as RGBAColor, second as RGBAColor, ratio)
+    : interpolateHSLA(first as HSLAColor, second as HSLAColor, ratio);
+}
+
+function randomRGBA(options: RandomRGBAOptions = {}): RGBAColor {
+  const rng = options.rng ?? Math.random;
+
+  return {
+    r: Math.round(sampleRandomRange(options.r, 0, 255, rng)),
+    g: Math.round(sampleRandomRange(options.g, 0, 255, rng)),
+    b: Math.round(sampleRandomRange(options.b, 0, 255, rng)),
+    a: options.a ? round(sampleRandomRange(options.a, 0, 1, rng), 2) : 1,
+  };
+}
+
+function randomHSLA(options: RandomHSLAOptions = {}): HSLAColor {
+  const rng = options.rng ?? Math.random;
+
+  return {
+    h: Math.round(sampleRandomRange(options.h, 0, 360, rng)),
+    s: Math.round(sampleRandomRange(options.s, 0, 100, rng)),
+    l: Math.round(sampleRandomRange(options.l, 0, 100, rng)),
+    a: options.a ? round(sampleRandomRange(options.a, 0, 1, rng), 2) : 1,
+  };
+}
+
+function randomGradient(
+  colors: Array<RGBAColor | HSLAColor>,
+  options: RandomGradientOptions = {}
+): RGBAColor | HSLAColor {
+  if (colors.length === 0) {
+    throw new Error('At least one seed color is required');
+  }
+
+  const rng = options.rng ?? Math.random;
+  const space = getGradientSpace(colors, options.space);
+  const position = sampleRandomRange(options.position, 0, 1, rng);
+
+  return interpolateGradient(colors, position, space);
 }
 
 // -----------------------------------------------------------------------------
@@ -687,6 +910,11 @@ export const ColorUtils = {
   // Convert to and from [0, 1] range and [0, 255] / [0, 360] ranges
   toUnit,
   fromUnit,
+
+  // Random color generation
+  randomRGBA,
+  randomHSLA,
+  randomGradient,
 
   // String parsing functions
   stringToRGBA,

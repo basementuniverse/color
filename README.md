@@ -91,3 +91,34 @@ const moreTransparentColor = fadeOut(myRGBAColor, 0.1); // Decrease opacity by 1
 const invertedColor = invert(myRGBAColor); // Invert color
 const blendedColor = blend(myRGBAColor, anotherColor, 0.5); // Blend with another color at 50%
 ```
+
+### Generate random colors
+
+```typescript
+import { ColorUtils } from '@basementuniverse/color';
+
+const randomRedTint = ColorUtils.randomRGBA({
+  r: { min: 180, max: 255 },
+  g: { min: 0, max: 90 },
+  b: { min: 0, max: 90 },
+});
+
+const randomPastel = ColorUtils.randomHSLA({
+  h: { min: 0, max: 360 },
+  s: { min: 20, max: 50 },
+  l: { min: 65, max: 85 },
+});
+
+const randomGradientColor = ColorUtils.randomGradient(
+  [
+    { r: 255, g: 0, b: 0, a: 1 },
+    { r: 255, g: 255, b: 0, a: 1 },
+    { r: 0, g: 255, b: 0, a: 1 },
+  ],
+  {
+    position: { mean: 0.5, stddev: 0.15 },
+  }
+);
+```
+
+Pass `rng: () => number` if you want reproducible output for tests or procedural generation.

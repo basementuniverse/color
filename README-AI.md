@@ -70,6 +70,50 @@ Invert color channels. RGBA: (255-r, 255-g, 255-b). HSLA converts to RGBA intern
 **blend<T>(color1: T, color2: T, ratio: number = 0.5): T**
 Linear interpolate between color1 and color2. ratio=0 → color1, ratio=1 → color2. Both colors must be same type. Clamped to [0,1].
 
+### Random color generation
+
+```
+type RandomSource = () => number;
+
+type RandomRange = {
+  min?: number;
+  max?: number;
+  mean?: number;
+  stddev?: number;
+};
+
+type RandomRGBAOptions = {
+  r?: RandomRange;
+  g?: RandomRange;
+  b?: RandomRange;
+  a?: RandomRange;
+  rng?: RandomSource;
+};
+
+type RandomHSLAOptions = {
+  h?: RandomRange;
+  s?: RandomRange;
+  l?: RandomRange;
+  a?: RandomRange;
+  rng?: RandomSource;
+};
+
+type RandomGradientOptions = {
+  position?: RandomRange;
+  space?: 'rgb' | 'hsl';
+  rng?: RandomSource;
+};
+```
+
+**randomRGBA(options?: RandomRGBAOptions): RGBAColor**
+Generate random RGBA color.
+
+**randomHSLA(options?: RandomHSLAOptions): HSLAColor**
+Generate random HSLA color.
+
+**randomGradient(colors: (RGBAColor | HSLAColor)[], options?: RandomGradientOptions): RGBAColor | HSLAColor**
+Generate random color along a gradient defined by input colors.
+
 ## Type Guards
 
 **isRGBAColor(color: any): color is RGBAColor**

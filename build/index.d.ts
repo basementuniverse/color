@@ -10,6 +10,35 @@ export type HSLAColor = {
     l: number;
     a?: number;
 };
+export type RandomSource = () => number;
+export type RandomRange = {
+    min?: number;
+    max?: number;
+    mean?: number;
+    stddev?: number;
+};
+export type RandomRGBAOptions = {
+    r?: RandomRange;
+    g?: RandomRange;
+    b?: RandomRange;
+    a?: RandomRange;
+    rng?: RandomSource;
+};
+export type RandomHSLAOptions = {
+    h?: RandomRange;
+    s?: RandomRange;
+    l?: RandomRange;
+    a?: RandomRange;
+    rng?: RandomSource;
+};
+export type RandomGradientOptions = {
+    position?: RandomRange;
+    space?: 'rgb' | 'hsl';
+    rng?: RandomSource;
+};
+declare function randomRGBA(options?: RandomRGBAOptions): RGBAColor;
+declare function randomHSLA(options?: RandomHSLAOptions): HSLAColor;
+declare function randomGradient(colors: Array<RGBAColor | HSLAColor>, options?: RandomGradientOptions): RGBAColor | HSLAColor;
 declare function toUnit(rgba: RGBAColor): RGBAColor;
 declare function toUnit(hsla: HSLAColor): HSLAColor;
 declare function fromUnit(rgba: RGBAColor): RGBAColor;
@@ -39,6 +68,9 @@ declare function blend<T extends RGBAColor | HSLAColor>(color1: T, color2: T, ra
 export declare const ColorUtils: {
     toUnit: typeof toUnit;
     fromUnit: typeof fromUnit;
+    randomRGBA: typeof randomRGBA;
+    randomHSLA: typeof randomHSLA;
+    randomGradient: typeof randomGradient;
     stringToRGBA: typeof stringToRGBA;
     stringToHSLA: typeof stringToHSLA;
     rgbaToHSLA: typeof rgbaToHSLA;
