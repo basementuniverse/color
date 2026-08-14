@@ -36,6 +36,8 @@ export type RandomGradientOptions = {
     space?: 'rgb' | 'hsl';
     rng?: RandomSource;
 };
+export declare function isRGBAColor(color: any): color is RGBAColor;
+export declare function isHSLAColor(color: any): color is HSLAColor;
 declare function randomRGBA(options?: RandomRGBAOptions): RGBAColor;
 declare function randomHSLA(options?: RandomHSLAOptions): HSLAColor;
 declare function randomGradient(colors: Array<RGBAColor | HSLAColor>, options?: RandomGradientOptions): RGBAColor | HSLAColor;

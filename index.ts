@@ -1,3 +1,5 @@
+import { clamp, lerp, round } from '@basementuniverse/utils';
+
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
@@ -51,7 +53,7 @@ export type RandomGradientOptions = {
 // Type guards
 // -----------------------------------------------------------------------------
 
-function isRGBAColor(color: any): color is RGBAColor {
+export function isRGBAColor(color: any): color is RGBAColor {
   return (
     color &&
     typeof color === 'object' &&
@@ -62,7 +64,7 @@ function isRGBAColor(color: any): color is RGBAColor {
   );
 }
 
-function isHSLAColor(color: any): color is HSLAColor {
+export function isHSLAColor(color: any): color is HSLAColor {
   return (
     color &&
     typeof color === 'object' &&
@@ -233,15 +235,6 @@ const COLOR_NAMES: Record<string, string> = {
 // Utility functions
 // -----------------------------------------------------------------------------
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
-
-function round(value: number, decimals: number = 0): number {
-  const factor = Math.pow(10, decimals);
-  return Math.round(value * factor) / factor;
-}
-
 function randomUnit(rng: RandomSource): number {
   const value = rng();
   return clamp(value, 0, 1);
@@ -309,10 +302,6 @@ function sampleRandomRange(
   }
 
   return randomUniform(rng, minBound, maxBound);
-}
-
-function lerp(start: number, end: number, ratio: number): number {
-  return start * (1 - ratio) + end * ratio;
 }
 
 function interpolateRGBA(
