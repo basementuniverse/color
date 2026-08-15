@@ -23,10 +23,11 @@ module.exports = (env, argv) => ({
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-    libraryTarget: 'umd',
-    library: 'Color',
-    umdNamedDefine: true,
-    globalObject: 'typeof self !== \'undefined\' ? self : this',
+    library: {
+      name: 'BasementUniverseColor',
+      type: 'umd',
+    },
+    globalObject: 'globalThis',
     publicPath: '/build/',
     filename: 'index.js',
     path: path.resolve(__dirname, 'build'),

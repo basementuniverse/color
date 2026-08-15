@@ -67,6 +67,7 @@ declare function fadeIn<T extends RGBAColor | HSLAColor>(color: T, amount?: numb
 declare function fadeOut<T extends RGBAColor | HSLAColor>(color: T, amount?: number): T;
 declare function invert<T extends RGBAColor | HSLAColor>(color: T): T;
 declare function blend<T extends RGBAColor | HSLAColor>(color1: T, color2: T, ratio?: number): T;
+declare function hue<T extends RGBAColor | HSLAColor>(color: T, amount: number): T;
 export declare const ColorUtils: {
     toUnit: typeof toUnit;
     fromUnit: typeof fromUnit;
@@ -87,5 +88,6 @@ export declare const ColorUtils: {
     fadeOut: typeof fadeOut;
     invert: typeof invert;
     blend: typeof blend;
+    hue: typeof hue;
 };
 export {};

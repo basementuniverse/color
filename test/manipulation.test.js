@@ -330,6 +330,35 @@ test('blend - HSLA colors', (assert) => {
   assert.deepEqual(blendAmountOneHsl, blueHsl, 'Blending with amount 1 should return the second color');
 });
 
+test('hue - RGBA and HSLA colors', (assert) => {
+  // Test changing hue of RGBA color
+  const red = { r: 255, g: 0, b: 0, a: 1 };
+  const hueChangedRed = ColorUtils.hue(red, 120); // Change hue by +120 degrees
+
+  // The resulting color should be green-ish
+  assert.ok(hueChangedRed.g > hueChangedRed.r && hueChangedRed.g > hueChangedRed.b, 'Green component should be dominant after hue change');
+  assert.equal(hueChangedRed.a, 1, 'Alpha should be preserved');
+
+  // Test changing hue of HSLA color
+  const blueHsl = { h: 240, s: 100, l: 50, a: 1 };
+  const hueChangedBlue = ColorUtils.hue(blueHsl, -120); // Change hue by -120 degrees
+
+  // The resulting color should be red-ish
+  assert.ok(hueChangedBlue.h < 240 && hueChangedBlue.h > 0, 'Hue should be between red and blue after change');
+  assert.equal(hueChangedBlue.s, 100, 'Saturation should remain unchanged');
+  assert.equal(hueChangedBlue.l, 50, 'Lightness should remain unchanged');
+  assert.equal(hueChangedBlue.a, 1, 'Alpha should be preserved');
+
+  // Test hue wrapping (e.g., adding 360 should result in the same color)
+  const originalHue = { h: 60, s: 100, l: 50, a: 1 };
+  const wrappedHue = ColorUtils.hue(originalHue, 360);
+  assert.equal(wrappedHue.h, originalHue.h, 'Hue should wrap around and remain the same after adding 360 degrees');
+
+  // Test negative hue wrapping
+  const negativeWrappedHue = ColorUtils.hue(originalHue, -60);
+  assert.equal(negativeWrappedHue.h, 0, 'Hue should wrap around and be 0 after subtracting 60 degrees from 60');
+});
+
 test('color manipulation - type preservation', (assert) => {
   // Test that RGBA input returns RGBA output
   const rgbaInput = { r: 255, g: 128, b: 0, a: 0.8 };

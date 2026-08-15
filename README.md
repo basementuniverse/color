@@ -8,6 +8,15 @@ A small color utilities library.
 npm i @basementuniverse/color
 ```
 
+For direct browser usage, include the UMD build with a script tag:
+
+```html
+<script src="build/index.js"></script>
+```
+
+The build exposes its exports through the `BasementUniverseColor` browser
+namespace. It does not add each export directly to `window`.
+
 ## Usage
 
 ```typescript
@@ -15,6 +24,16 @@ import { RGBAColor, HSLAColor } from '@basementuniverse/color';
 
 const myRGBAColor: RGBAColor = { r: 255, g: 0, b: 0, a: 1 }; // Red color in RGBA
 const myHSLAColor: HSLAColor = { h: 0, s: 100, l: 50, a: 1 }; // Red color in HSLA
+```
+
+When using the library directly from a browser script, prefix exports with
+`BasementUniverseColor`:
+
+```html
+<script src="/build/index.js"></script>
+<script>
+  const color = BasementUniverseColor.ColorUtils.stringToRGBA('#ff0000');
+</script>
 ```
 
 ### Type guards
@@ -90,6 +109,7 @@ const moreOpaqueColor = ColorUtils.fadeIn(myRGBAColor, 0.1); // Increase opacity
 const moreTransparentColor = ColorUtils.fadeOut(myRGBAColor, 0.1); // Decrease opacity by 10%
 const invertedColor = ColorUtils.invert(myRGBAColor); // Invert color
 const blendedColor = ColorUtils.blend(myRGBAColor, anotherColor, 0.5); // Blend with another color at 50%
+const tintedColor = ColorUtils.hue(myRGBAColor, 180); // Change hue by 180 degrees
 ```
 
 ### Generate random colors

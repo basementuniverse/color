@@ -895,6 +895,26 @@ function blend<T extends RGBAColor | HSLAColor>(
   return color1;
 }
 
+function hue<T extends RGBAColor | HSLAColor>(color: T, amount: number): T {
+  if (isHSLAColor(color)) {
+    const hsla = color as HSLAColor;
+    return {
+      ...hsla,
+      h: (hsla.h + amount) % 360,
+    } as T;
+  }
+
+  if (isRGBAColor(color)) {
+    // RGBAColor - convert to HSLA, adjust hue, convert back
+    const rgba = color as RGBAColor;
+    const hsla = rgbaToHSLA(rgba);
+    const adjusted = hue(hsla, amount);
+    return hslaToRGBA(adjusted) as T;
+  }
+
+  return color;
+}
+
 export const ColorUtils = {
   // Convert to and from [0, 1] range and [0, 255] / [0, 360] ranges
   toUnit,
@@ -926,4 +946,5 @@ export const ColorUtils = {
   fadeOut,
   invert,
   blend,
+  hue,
 };

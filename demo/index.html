@@ -1,0 +1,177 @@
+<style>
+  body {
+    background-color: #222;
+    font-family: sans-serif;
+    color: #eee;
+  }
+
+  .color {
+    display: inline-block;
+    width: 100px;
+    height: 100px;
+    margin: 5px;
+    border: 1px solid #000;
+  }
+</style>
+<script src="../build/index.js"></script>
+<h1>Basic colors</h1>
+<div id="basic-colors"></div>
+<h1>Color manipulation</h1>
+<div id="color-manipulation"></div>
+<h1>Random colors</h1>
+<div id="random-colors"></div>
+<script>
+  // ---------------------------------------------------------------------------
+  // Demo boilerplate
+  // ---------------------------------------------------------------------------
+
+  const CONTAINERS = {
+    basicColors: document.getElementById('basic-colors'),
+    colorManipulation: document.getElementById('color-manipulation'),
+    randomColors: document.getElementById('random-colors'),
+  };
+
+  function dumpColor(color, container) {
+    console.log('Dumped color:', color);
+    const div = document.createElement('div');
+    div.className = 'color';
+    div.style.backgroundColor = color;
+    container.appendChild(div);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Basic color instantiation
+  // ---------------------------------------------------------------------------
+
+  const red = BasementUniverseColor.ColorUtils.stringToRGBA('red');
+  dumpColor(
+    BasementUniverseColor.ColorUtils.rgbaToString(red),
+    CONTAINERS.basicColors
+  );
+
+  const green = BasementUniverseColor.ColorUtils.stringToRGBA('#00aa00');
+  dumpColor(
+    BasementUniverseColor.ColorUtils.rgbaToString(green, { mode: 'hex' }),
+    CONTAINERS.basicColors
+  );
+
+  const blue = BasementUniverseColor.ColorUtils.stringToRGBA('rgb(0, 0, 255)');
+  dumpColor(
+    BasementUniverseColor.ColorUtils.rgbaToString(blue, {
+      mode: 'hex',
+      alpha: true,
+    }),
+    CONTAINERS.basicColors
+  );
+
+  const yellow =
+    BasementUniverseColor.ColorUtils.stringToHSLA('hsl(60, 100%, 50%)');
+  dumpColor(
+    BasementUniverseColor.ColorUtils.hslaToString(yellow, { alpha: true }),
+    CONTAINERS.basicColors
+  );
+
+  // ---------------------------------------------------------------------------
+  // Color manipulation
+  // ---------------------------------------------------------------------------
+
+  const redLightnessVariations = {
+    lightRed: BasementUniverseColor.ColorUtils.lighten(red, 0.2),
+    darkRed: BasementUniverseColor.ColorUtils.darken(red, 0.2),
+  };
+  dumpColor(
+    BasementUniverseColor.ColorUtils.rgbaToString(
+      redLightnessVariations.lightRed
+    ),
+    CONTAINERS.colorManipulation
+  );
+  dumpColor(
+    BasementUniverseColor.ColorUtils.rgbaToString(
+      redLightnessVariations.darkRed
+    ),
+    CONTAINERS.colorManipulation
+  );
+
+  const greenSaturationVariations = {
+    saturatedGreen: BasementUniverseColor.ColorUtils.saturate(green, 0.5),
+    desaturatedGreen: BasementUniverseColor.ColorUtils.desaturate(green, 0.5),
+  };
+  dumpColor(
+    BasementUniverseColor.ColorUtils.rgbaToString(
+      greenSaturationVariations.saturatedGreen
+    ),
+    CONTAINERS.colorManipulation
+  );
+  dumpColor(
+    BasementUniverseColor.ColorUtils.rgbaToString(
+      greenSaturationVariations.desaturatedGreen
+    ),
+    CONTAINERS.colorManipulation
+  );
+
+  const blueBlendedVariations = {
+    blueWithRed: BasementUniverseColor.ColorUtils.blend(blue, red, 0.2),
+    blueWithGreen: BasementUniverseColor.ColorUtils.blend(blue, green, 0.2),
+  };
+  dumpColor(
+    BasementUniverseColor.ColorUtils.rgbaToString(
+      blueBlendedVariations.blueWithRed
+    ),
+    CONTAINERS.colorManipulation
+  );
+  dumpColor(
+    BasementUniverseColor.ColorUtils.rgbaToString(
+      blueBlendedVariations.blueWithGreen
+    ),
+    CONTAINERS.colorManipulation
+  );
+
+  const yellowHueVariations = {
+    yellowShiftedHue: BasementUniverseColor.ColorUtils.hue(yellow, 120),
+  };
+  dumpColor(
+    BasementUniverseColor.ColorUtils.hslaToString(
+      yellowHueVariations.yellowShiftedHue
+    ),
+    CONTAINERS.colorManipulation
+  );
+
+  // ---------------------------------------------------------------------------
+  // Color randomisation
+  // ---------------------------------------------------------------------------
+
+  const randomRedTint = BasementUniverseColor.ColorUtils.randomRGBA({
+    r: { min: 180, max: 255 },
+    g: { min: 0, max: 90 },
+    b: { min: 0, max: 90 },
+  });
+  dumpColor(
+    BasementUniverseColor.ColorUtils.rgbaToString(randomRedTint),
+    CONTAINERS.randomColors
+  );
+
+  const randomPastel = BasementUniverseColor.ColorUtils.randomHSLA({
+    h: { min: 0, max: 360 },
+    s: { min: 20, max: 50 },
+    l: { min: 65, max: 85 },
+  });
+  dumpColor(
+    BasementUniverseColor.ColorUtils.hslaToString(randomPastel),
+    CONTAINERS.randomColors
+  );
+
+  const randomGradientColor = BasementUniverseColor.ColorUtils.randomGradient(
+    [
+      { r: 255, g: 0, b: 0, a: 1 },
+      { r: 255, g: 255, b: 0, a: 1 },
+      { r: 0, g: 255, b: 0, a: 1 },
+    ],
+    {
+      position: { mean: 0.5, stddev: 0.15 },
+    }
+  );
+  dumpColor(
+    BasementUniverseColor.ColorUtils.rgbaToString(randomGradientColor),
+    CONTAINERS.randomColors
+  );
+</script>
