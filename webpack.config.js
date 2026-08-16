@@ -28,7 +28,6 @@ module.exports = (env, argv) => ({
       type: 'umd',
     },
     globalObject: 'globalThis',
-    publicPath: '/build/',
     filename: 'index.js',
     path: path.resolve(__dirname, 'build'),
   },

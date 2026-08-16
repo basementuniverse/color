@@ -30,7 +30,7 @@ When using the library directly from a browser script, prefix exports with
 `BasementUniverseColor`:
 
 ```html
-<script src="/build/index.js"></script>
+<script src="build/index.js"></script>
 <script>
   const color = BasementUniverseColor.ColorUtils.stringToRGBA('#ff0000');
 </script>
